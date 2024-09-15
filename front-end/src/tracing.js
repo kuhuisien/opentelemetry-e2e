@@ -14,43 +14,55 @@
  * limitations under the License.
  */
 
-const { Resource } = require('@opentelemetry/resources');
-const { SemanticResourceAttributes } = require('@opentelemetry/semantic-conventions');
-const { WebTracerProvider, SimpleSpanProcessor, ConsoleSpanExporter } = require('@opentelemetry/sdk-trace-web');
-const { OTLPTraceExporter }  = require('@opentelemetry/exporter-trace-otlp-http');
-const { registerInstrumentations } = require('@opentelemetry/instrumentation');
-const { FetchInstrumentation } = require('@opentelemetry/instrumentation-fetch');
+const { Resource } = require("@opentelemetry/resources");
+const {
+  SemanticResourceAttributes,
+} = require("@opentelemetry/semantic-conventions");
+const {
+  WebTracerProvider,
+  SimpleSpanProcessor,
+  ConsoleSpanExporter,
+} = require("@opentelemetry/sdk-trace-web");
+import { ZoneContextManager } from "@opentelemetry/context-zone";
+import { B3Propagator } from "@opentelemetry/propagator-b3";
+//const { OTLPTraceExporter }  = require('@opentelemetry/exporter-trace-otlp-http');
+const { registerInstrumentations } = require("@opentelemetry/instrumentation");
+const {
+  FetchInstrumentation,
+} = require("@opentelemetry/instrumentation-fetch");
 
 const consoleExporter = new ConsoleSpanExporter();
 
-const collectorExporter = new OTLPTraceExporter({
-  headers: {}
-});
+// const collectorExporter = new OTLPTraceExporter({
+//   headers: {}
+// });
 
 const provider = new WebTracerProvider({
   resource: new Resource({
-    [SemanticResourceAttributes.SERVICE_NAME]: process.env.REACT_APP_NAME
-  })
+    [SemanticResourceAttributes.SERVICE_NAME]: process.env.REACT_APP_NAME,
+  }),
 });
 
-const fetchInstrumentation = new FetchInstrumentation({});
+const fetchInstrumentation = new FetchInstrumentation({
+  // client is running on port 1234
+  ignoreUrls: [/localhost:3000\.*/],
+  propagateTraceHeaderCorsUrls: [/http:\/\/localhost:5000\.*/],
+  clearTimingResources: true,
+});
 
 fetchInstrumentation.setTracerProvider(provider);
 provider.addSpanProcessor(new SimpleSpanProcessor(consoleExporter));
-provider.addSpanProcessor(new SimpleSpanProcessor(collectorExporter));
-provider.register();
-
-registerInstrumentations({
-  instrumentations: [
-    fetchInstrumentation
-  ],
-  tracerProvider: provider
+//provider.addSpanProcessor(new SimpleSpanProcessor(collectorExporter));
+provider.register({
+  contextManager: new ZoneContextManager(),
+  propagator: new B3Propagator(),
 });
 
-export default function TraceProvider ({ children }) {
-  return (
-    <>
-      {children}
-    </>
-  );
+registerInstrumentations({
+  instrumentations: [fetchInstrumentation],
+  tracerProvider: provider,
+});
+
+export default function TraceProvider({ children }) {
+  return <>{children}</>;
 }
