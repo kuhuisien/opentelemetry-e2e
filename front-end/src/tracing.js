@@ -46,8 +46,8 @@ const provider = new WebTracerProvider({
 const fetchInstrumentation = new FetchInstrumentation({
   // client is running on port 1234
   ignoreUrls: [/localhost:3000\.*/],
-  propagateTraceHeaderCorsUrls: [/http:\/\/localhost:5000\.*/],
-  clearTimingResources: true,
+  propagateTraceHeaderCorsUrls: [/http:\/\/localhost:8080\.*/],
+  //clearTimingResources: true,
 });
 
 fetchInstrumentation.setTracerProvider(provider);
