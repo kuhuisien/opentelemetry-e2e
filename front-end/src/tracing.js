@@ -30,6 +30,7 @@ const { registerInstrumentations } = require("@opentelemetry/instrumentation");
 const {
   FetchInstrumentation,
 } = require("@opentelemetry/instrumentation-fetch");
+const { W3CTraceContextPropagator } = require("@opentelemetry/core");
 
 const consoleExporter = new ConsoleSpanExporter();
 
@@ -58,7 +59,7 @@ provider.addSpanProcessor(new SimpleSpanProcessor(consoleExporter));
 //provider.addSpanProcessor(new SimpleSpanProcessor(collectorExporter));
 provider.register({
   contextManager: new ZoneContextManager(),
-  propagator: new B3Propagator(),
+  propagator: new W3CTraceContextPropagator(), // new B3Propagator(),
 });
 
 registerInstrumentations({
