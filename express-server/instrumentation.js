@@ -16,10 +16,12 @@ const {
   B3InjectEncoding,
 } = require('@opentelemetry/propagator-b3');
 const { CompositePropagator } = require('@opentelemetry/core');
+const { W3CTraceContextPropagator } = require('@opentelemetry/core');
 
 api.propagation.setGlobalPropagator(
   new CompositePropagator({
     propagators: [
+      new W3CTraceContextPropagator(),
       new B3Propagator(),
       new B3Propagator({ injectEncoding: B3InjectEncoding.MULTI_HEADER }),
     ],
